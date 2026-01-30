@@ -346,6 +346,93 @@ Copy
             border-top: 2px solid #e0e0e0;
         }
 
+        .autocomplete-container {
+            position: relative;
+        }
+
+        .autocomplete-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .autocomplete-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #667eea;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .autocomplete-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+
+        .autocomplete-item:hover {
+            background: #f8f9fa;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .autocomplete-item-highlight {
+            background: #e9ecef;
+        }
+
+        .player-search-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .player-details {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .player-license {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .player-points {
+            color: #28a745;
+        }
+
+        .selected-player-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
         .login-overlay {
             position: fixed;
             top: 0;
@@ -528,6 +615,14 @@ Copy
                 tournamentId: '', player1Id: '', player2Id: '', 
                 format: 'best-of-5', winnerId: '', score: ''
             });
+            
+            // Player search states
+            const [player1Search, setPlayer1Search] = useState('');
+            const [player2Search, setPlayer2Search] = useState('');
+            const [showPlayer1Dropdown, setShowPlayer1Dropdown] = useState(false);
+            const [showPlayer2Dropdown, setShowPlayer2Dropdown] = useState(false);
+            const [selectedPlayer1, setSelectedPlayer1] = useState(null);
+            const [selectedPlayer2, setSelectedPlayer2] = useState(null);
             
             // Filter states
             const [searchTerm, setSearchTerm] = useState('');
@@ -876,6 +971,10 @@ Copy
                     tournamentId: '', player1Id: '', player2Id: '', 
                     format: 'best-of-5', winnerId: '', score: ''
                 });
+                setSelectedPlayer1(null);
+                setSelectedPlayer2(null);
+                setPlayer1Search('');
+                setPlayer2Search('');
             };
 
             const deleteMatch = (matchId) => {
@@ -967,6 +1066,44 @@ Copy
 
             // Get unique age groups
             const ageGroups = [...new Set(players.map(p => p.ageGroup))];
+
+            // Player search functions
+            const searchPlayers = (searchTerm) => {
+                if (!searchTerm || searchTerm.length < 1) return [];
+                
+                const term = searchTerm.toLowerCase();
+                return players.filter(p => {
+                    const fullName = `${p.firstName} ${p.lastName}`.toLowerCase();
+                    const license = p.licenseNumber?.toLowerCase() || '';
+                    return fullName.includes(term) || license.includes(term);
+                }).slice(0, 10); // Limit to 10 results
+            };
+
+            const selectPlayer1 = (player) => {
+                setSelectedPlayer1(player);
+                setMatchForm({...matchForm, player1Id: player.id, winnerId: ''});
+                setPlayer1Search('');
+                setShowPlayer1Dropdown(false);
+            };
+
+            const selectPlayer2 = (player) => {
+                setSelectedPlayer2(player);
+                setMatchForm({...matchForm, player2Id: player.id, winnerId: ''});
+                setPlayer2Search('');
+                setShowPlayer2Dropdown(false);
+            };
+
+            const clearPlayer1 = () => {
+                setSelectedPlayer1(null);
+                setMatchForm({...matchForm, player1Id: '', winnerId: ''});
+                setPlayer1Search('');
+            };
+
+            const clearPlayer2 = () => {
+                setSelectedPlayer2(null);
+                setMatchForm({...matchForm, player2Id: '', winnerId: ''});
+                setPlayer2Search('');
+            };
 
             // Export functions
             const exportToJSON = () => {
@@ -1681,31 +1818,145 @@ Copy
                                         <div className="form-row">
                                             <div className="form-group">
                                                 <label>Играч 1 *</label>
-                                                <select
-                                                    value={matchForm.player1Id}
-                                                    onChange={(e) => setMatchForm({...matchForm, player1Id: e.target.value})}
-                                                >
-                                                    <option value="">Изберете играч</option>
-                                                    {players.map(player => (
-                                                        <option key={player.id} value={player.id}>
-                                                            {player.firstName} {player.lastName} ({player.currentPoints.toFixed(1)} т.)
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                {!selectedPlayer1 ? (
+                                                    <div className="autocomplete-container">
+                                                        <input
+                                                            type="text"
+                                                            className="autocomplete-input"
+                                                            value={player1Search}
+                                                            onChange={(e) => {
+                                                                setPlayer1Search(e.target.value);
+                                                                setShowPlayer1Dropdown(true);
+                                                            }}
+                                                            onFocus={() => setShowPlayer1Dropdown(true)}
+                                                            placeholder="Търси по име или номер на лиценз..."
+                                                        />
+                                                        {showPlayer1Dropdown && player1Search && (
+                                                            <div className="autocomplete-dropdown">
+                                                                {searchPlayers(player1Search).length > 0 ? (
+                                                                    searchPlayers(player1Search).map(player => (
+                                                                        <div
+                                                                            key={player.id}
+                                                                            className="autocomplete-item"
+                                                                            onClick={() => selectPlayer1(player)}
+                                                                        >
+                                                                            <div className="player-search-info">
+                                                                                <div>
+                                                                                    <div className="player-name">
+                                                                                        {player.firstName} {player.lastName}
+                                                                                    </div>
+                                                                                    <div className="player-details">
+                                                                                        <span className="player-license">#{player.licenseNumber || 'N/A'}</span>
+                                                                                        {' • '}
+                                                                                        <span className="player-points">{player.currentPoints.toFixed(1)} т.</span>
+                                                                                        {' • '}
+                                                                                        {player.ageGroup}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="autocomplete-item" style={{color: '#999'}}>
+                                                                        Няма намерени играчи
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <div className="selected-player-badge">
+                                                            {selectedPlayer1.firstName} {selectedPlayer1.lastName} 
+                                                            {' '}(#{selectedPlayer1.licenseNumber || 'N/A'} • {selectedPlayer1.currentPoints.toFixed(1)} т.)
+                                                            <button 
+                                                                onClick={clearPlayer1}
+                                                                style={{
+                                                                    marginLeft: '10px',
+                                                                    background: 'rgba(255,255,255,0.3)',
+                                                                    border: 'none',
+                                                                    color: 'white',
+                                                                    borderRadius: '50%',
+                                                                    width: '20px',
+                                                                    height: '20px',
+                                                                    cursor: 'pointer',
+                                                                    fontSize: '12px'
+                                                                }}
+                                                            >×</button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="form-group">
                                                 <label>Играч 2 *</label>
-                                                <select
-                                                    value={matchForm.player2Id}
-                                                    onChange={(e) => setMatchForm({...matchForm, player2Id: e.target.value})}
-                                                >
-                                                    <option value="">Изберете играч</option>
-                                                    {players.map(player => (
-                                                        <option key={player.id} value={player.id}>
-                                                            {player.firstName} {player.lastName} ({player.currentPoints.toFixed(1)} т.)
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                {!selectedPlayer2 ? (
+                                                    <div className="autocomplete-container">
+                                                        <input
+                                                            type="text"
+                                                            className="autocomplete-input"
+                                                            value={player2Search}
+                                                            onChange={(e) => {
+                                                                setPlayer2Search(e.target.value);
+                                                                setShowPlayer2Dropdown(true);
+                                                            }}
+                                                            onFocus={() => setShowPlayer2Dropdown(true)}
+                                                            placeholder="Търси по име или номер на лиценз..."
+                                                        />
+                                                        {showPlayer2Dropdown && player2Search && (
+                                                            <div className="autocomplete-dropdown">
+                                                                {searchPlayers(player2Search).length > 0 ? (
+                                                                    searchPlayers(player2Search).map(player => (
+                                                                        <div
+                                                                            key={player.id}
+                                                                            className="autocomplete-item"
+                                                                            onClick={() => selectPlayer2(player)}
+                                                                        >
+                                                                            <div className="player-search-info">
+                                                                                <div>
+                                                                                    <div className="player-name">
+                                                                                        {player.firstName} {player.lastName}
+                                                                                    </div>
+                                                                                    <div className="player-details">
+                                                                                        <span className="player-license">#{player.licenseNumber || 'N/A'}</span>
+                                                                                        {' • '}
+                                                                                        <span className="player-points">{player.currentPoints.toFixed(1)} т.</span>
+                                                                                        {' • '}
+                                                                                        {player.ageGroup}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="autocomplete-item" style={{color: '#999'}}>
+                                                                        Няма намерени играчи
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <div className="selected-player-badge">
+                                                            {selectedPlayer2.firstName} {selectedPlayer2.lastName}
+                                                            {' '}(#{selectedPlayer2.licenseNumber || 'N/A'} • {selectedPlayer2.currentPoints.toFixed(1)} т.)
+                                                            <button 
+                                                                onClick={clearPlayer2}
+                                                                style={{
+                                                                    marginLeft: '10px',
+                                                                    background: 'rgba(255,255,255,0.3)',
+                                                                    border: 'none',
+                                                                    color: 'white',
+                                                                    borderRadius: '50%',
+                                                                    width: '20px',
+                                                                    height: '20px',
+                                                                    cursor: 'pointer',
+                                                                    fontSize: '12px'
+                                                                }}
+                                                            >×</button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="form-row">
@@ -1716,14 +1967,14 @@ Copy
                                                     onChange={(e) => setMatchForm({...matchForm, winnerId: e.target.value})}
                                                 >
                                                     <option value="">Изберете победител</option>
-                                                    {matchForm.player1Id && (
-                                                        <option value={matchForm.player1Id}>
-                                                            {players.find(p => p.id === matchForm.player1Id)?.firstName} {players.find(p => p.id === matchForm.player1Id)?.lastName}
+                                                    {selectedPlayer1 && (
+                                                        <option value={selectedPlayer1.id}>
+                                                            {selectedPlayer1.firstName} {selectedPlayer1.lastName}
                                                         </option>
                                                     )}
-                                                    {matchForm.player2Id && (
-                                                        <option value={matchForm.player2Id}>
-                                                            {players.find(p => p.id === matchForm.player2Id)?.firstName} {players.find(p => p.id === matchForm.player2Id)?.lastName}
+                                                    {selectedPlayer2 && (
+                                                        <option value={selectedPlayer2.id}>
+                                                            {selectedPlayer2.firstName} {selectedPlayer2.lastName}
                                                         </option>
                                                     )}
                                                 </select>
@@ -1860,4 +2111,5 @@ Copy
         ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
+</html>
 </html>
