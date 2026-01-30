@@ -1346,7 +1346,7 @@
                                                 <th>Възрастова група</th>
                                                 <th>Клуб</th>
                                                 <th>Точки</th>
-                                                <th>Лиценз №</th>
+                                                <th>Картотека №</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1479,7 +1479,7 @@
                                                 </select>
                                             </div>
                                             <div className="form-group">
-                                                <label>Номер на лиценз</label>
+                                                <label>Картотека №</label>
                                                 <input
                                                     type="text"
                                                     value={playerForm.licenseNumber}
@@ -1526,7 +1526,7 @@
                                                     <th>Възрастова група</th>
                                                     <th>Клуб</th>
                                                     <th>Точки</th>
-                                                    <th>Лиценз №</th>
+                                                    <th>Картотека №</th>
                                                     {isAdmin && <th>Действия</th>}
                                                 </tr>
                                             </thead>
@@ -1828,7 +1828,7 @@
                                                                 setShowPlayer1Dropdown(true);
                                                             }}
                                                             onFocus={() => setShowPlayer1Dropdown(true)}
-                                                            placeholder="Търси по име или номер на лиценз..."
+                                                            placeholder="Търси по име или номер на картотека..."
                                                         />
                                                         {showPlayer1Dropdown && player1Search && (
                                                             <div className="autocomplete-dropdown">
@@ -1899,7 +1899,7 @@
                                                                 setShowPlayer2Dropdown(true);
                                                             }}
                                                             onFocus={() => setShowPlayer2Dropdown(true)}
-                                                            placeholder="Търси по име или номер на лиценз..."
+                                                            placeholder="Търси по име или номер на картотека..."
                                                         />
                                                         {showPlayer2Dropdown && player2Search && (
                                                             <div className="autocomplete-dropdown">
@@ -2110,5 +2110,4 @@
         ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
-</html>
 </html>
