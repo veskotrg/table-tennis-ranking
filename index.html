@@ -524,6 +524,12 @@
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         };
 
+        const formatDateToDDMMYYYY = (dateString) => {
+            if (!dateString) return '-';
+            const [year, month, day] = dateString.split('-');
+            return `${day}/${month}/${year}`;
+        };
+
         const getAgeGroup = (dateOfBirth, gender) => {
             const today = new Date();
             const birth = new Date(dateOfBirth);
@@ -1757,8 +1763,8 @@
                                                     return (
                                                         <tr key={tournament.id}>
                                                             <td>{tournament.name}</td>
-                                                            <td>{tournament.startDate}</td>
-                                                            <td>{tournament.endDate || '-'}</td>
+                                                            <td>{formatDateToDDMMYYYY(tournament.startDate)}</td>
+                                                            <td>{formatDateToDDMMYYYY(tournament.endDate)}</td>
                                                             <td>{tournament.location || '-'}</td>
                                                             <td>{hostClub ? hostClub.name : '-'}</td>
                                                             <td>{tournament.coefficient}x</td>
