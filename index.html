@@ -1,6 +1,3 @@
-Table tennis ranking · HTML
-Copy
-
 <!DOCTYPE html>
 <html lang="bg">
 <head>
@@ -1230,12 +1227,10 @@ Copy
                                 onClick={() => setActiveTab('ranking')}>
                             Ранглиста
                         </button>
-                        {isAdmin && (
-                            <button className={`nav-tab ${activeTab === 'players' ? 'active' : ''}`} 
-                                    onClick={() => setActiveTab('players')}>
-                                Състезатели
-                            </button>
-                        )}
+                        <button className={`nav-tab ${activeTab === 'players' ? 'active' : ''}`} 
+                                onClick={() => setActiveTab('players')}>
+                            Състезатели
+                        </button>
                         {isAdmin && (
                             <button className={`nav-tab ${activeTab === 'clubs' ? 'active' : ''}`} 
                                     onClick={() => setActiveTab('clubs')}>
@@ -1417,105 +1412,107 @@ Copy
 
                         {activeTab === 'players' && (
                             <div>
-                                <div className="card">
-                                    <h3>{editingPlayer ? 'Редактиране на състезател' : 'Добавяне на нов състезател'}</h3>
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label>Име *</label>
-                                            <input
-                                                type="text"
-                                                value={playerForm.firstName}
-                                                onChange={(e) => setPlayerForm({...playerForm, firstName: e.target.value})}
-                                                placeholder="Въведете име"
-                                            />
+                                {isAdmin && (
+                                    <div className="card">
+                                        <h3>{editingPlayer ? 'Редактиране на състезател' : 'Добавяне на нов състезател'}</h3>
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>Име *</label>
+                                                <input
+                                                    type="text"
+                                                    value={playerForm.firstName}
+                                                    onChange={(e) => setPlayerForm({...playerForm, firstName: e.target.value})}
+                                                    placeholder="Въведете име"
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Фамилия *</label>
+                                                <input
+                                                    type="text"
+                                                    value={playerForm.lastName}
+                                                    onChange={(e) => setPlayerForm({...playerForm, lastName: e.target.value})}
+                                                    placeholder="Въведете фамилия"
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Дата на раждане *</label>
+                                                <input
+                                                    type="date"
+                                                    value={playerForm.dateOfBirth}
+                                                    onChange={(e) => setPlayerForm({...playerForm, dateOfBirth: e.target.value})}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="form-group">
-                                            <label>Фамилия *</label>
-                                            <input
-                                                type="text"
-                                                value={playerForm.lastName}
-                                                onChange={(e) => setPlayerForm({...playerForm, lastName: e.target.value})}
-                                                placeholder="Въведете фамилия"
-                                            />
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>Пол</label>
+                                                <select
+                                                    value={playerForm.gender}
+                                                    onChange={(e) => setPlayerForm({...playerForm, gender: e.target.value})}
+                                                >
+                                                    <option value="Мъж">Мъж</option>
+                                                    <option value="Жена">Жена</option>
+                                                </select>
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Възрастова група</label>
+                                                <input
+                                                    type="text"
+                                                    value={playerForm.dateOfBirth && playerForm.gender ? getAgeGroup(playerForm.dateOfBirth, playerForm.gender) : ''}
+                                                    disabled
+                                                    style={{background: '#f0f0f0', cursor: 'not-allowed'}}
+                                                    placeholder="Автоматично след въвеждане на дата"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="form-group">
-                                            <label>Дата на раждане *</label>
-                                            <input
-                                                type="date"
-                                                value={playerForm.dateOfBirth}
-                                                onChange={(e) => setPlayerForm({...playerForm, dateOfBirth: e.target.value})}
-                                            />
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>Клуб</label>
+                                                <select
+                                                    value={playerForm.clubId}
+                                                    onChange={(e) => setPlayerForm({...playerForm, clubId: e.target.value})}
+                                                >
+                                                    <option value="">Изберете клуб</option>
+                                                    {clubs.map(club => (
+                                                        <option key={club.id} value={club.id}>{club.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Номер на лиценз</label>
+                                                <input
+                                                    type="text"
+                                                    value={playerForm.licenseNumber}
+                                                    onChange={(e) => setPlayerForm({...playerForm, licenseNumber: e.target.value})}
+                                                    placeholder="Номер на картотека"
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Начални точки</label>
+                                                <input
+                                                    type="number"
+                                                    value={playerForm.initialPoints}
+                                                    onChange={(e) => setPlayerForm({...playerForm, initialPoints: e.target.value})}
+                                                    placeholder="500"
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label>Пол</label>
-                                            <select
-                                                value={playerForm.gender}
-                                                onChange={(e) => setPlayerForm({...playerForm, gender: e.target.value})}
-                                            >
-                                                <option value="Мъж">Мъж</option>
-                                                <option value="Жена">Жена</option>
-                                            </select>
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Възрастова група</label>
-                                            <input
-                                                type="text"
-                                                value={playerForm.dateOfBirth && playerForm.gender ? getAgeGroup(playerForm.dateOfBirth, playerForm.gender) : ''}
-                                                disabled
-                                                style={{background: '#f0f0f0', cursor: 'not-allowed'}}
-                                                placeholder="Автоматично след въвеждане на дата"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label>Клуб</label>
-                                            <select
-                                                value={playerForm.clubId}
-                                                onChange={(e) => setPlayerForm({...playerForm, clubId: e.target.value})}
-                                            >
-                                                <option value="">Изберете клуб</option>
-                                                {clubs.map(club => (
-                                                    <option key={club.id} value={club.id}>{club.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Номер на лиценз</label>
-                                            <input
-                                                type="text"
-                                                value={playerForm.licenseNumber}
-                                                onChange={(e) => setPlayerForm({...playerForm, licenseNumber: e.target.value})}
-                                                placeholder="Номер на картотека"
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Начални точки</label>
-                                            <input
-                                                type="number"
-                                                value={playerForm.initialPoints}
-                                                onChange={(e) => setPlayerForm({...playerForm, initialPoints: e.target.value})}
-                                                placeholder="500"
-                                            />
-                                        </div>
-                                    </div>
-                                    <button className="btn btn-primary" onClick={addOrUpdatePlayer}>
-                                        {editingPlayer ? 'Актуализирай състезател' : 'Добави състезател'}
-                                    </button>
-                                    {editingPlayer && (
-                                        <button className="btn btn-secondary" onClick={() => {
-                                            setEditingPlayer(null);
-                                            setPlayerForm({
-                                                firstName: '', lastName: '', dateOfBirth: '', gender: 'Мъж',
-                                                clubId: '', licenseNumber: '', initialPoints: 500
-                                            });
-                                        }}>
-                                            Откажи
+                                        <button className="btn btn-primary" onClick={addOrUpdatePlayer}>
+                                            {editingPlayer ? 'Актуализирай състезател' : 'Добави състезател'}
                                         </button>
-                                    )}
-                                </div>
+                                        {editingPlayer && (
+                                            <button className="btn btn-secondary" onClick={() => {
+                                                setEditingPlayer(null);
+                                                setPlayerForm({
+                                                    firstName: '', lastName: '', dateOfBirth: '', gender: 'Мъж',
+                                                    clubId: '', licenseNumber: '', initialPoints: 500
+                                                });
+                                            }}>
+                                                Откажи
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
 
                                 <div className="card">
                                     <h3>Списък на състезателите</h3>
@@ -1530,7 +1527,7 @@ Copy
                                                     <th>Клуб</th>
                                                     <th>Точки</th>
                                                     <th>Лиценз №</th>
-                                                    <th>Действия</th>
+                                                    {isAdmin && <th>Действия</th>}
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -1545,16 +1542,18 @@ Copy
                                                             <td>{club ? club.name : '-'}</td>
                                                             <td>{player.currentPoints.toFixed(1)}</td>
                                                             <td>{player.licenseNumber || '-'}</td>
-                                                            <td>
-                                                                <div className="action-buttons">
-                                                                    <button className="btn btn-sm btn-primary" onClick={() => editPlayer(player)}>
-                                                                        Редактирай
-                                                                    </button>
-                                                                    <button className="btn btn-sm btn-danger" onClick={() => deletePlayer(player.id)}>
-                                                                        Изтрий
-                                                                    </button>
-                                                                </div>
-                                                            </td>
+                                                            {isAdmin && (
+                                                                <td>
+                                                                    <div className="action-buttons">
+                                                                        <button className="btn btn-sm btn-primary" onClick={() => editPlayer(player)}>
+                                                                            Редактирай
+                                                                        </button>
+                                                                        <button className="btn btn-sm btn-danger" onClick={() => deletePlayer(player.id)}>
+                                                                            Изтрий
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            )}
                                                         </tr>
                                                     );
                                                 })}
