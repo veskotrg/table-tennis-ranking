@@ -631,6 +631,7 @@
             const [searchTerm, setSearchTerm] = useState('');
             const [filterClub, setFilterClub] = useState('');
             const [filterAgeGroup, setFilterAgeGroup] = useState('');
+            const [filterTournamentId, setFilterTournamentId] = useState('');
             
             const [alert, setAlert] = useState(null);
             const [editingPlayer, setEditingPlayer] = useState(null);
@@ -898,6 +899,11 @@
                     setTournaments(tournaments.filter(t => t.id !== id));
                     showAlert('Турнирът е изтрит успешно!');
                 }
+            };
+
+            const viewTournamentMatches = (tournamentId) => {
+                setFilterTournamentId(tournamentId);
+                setActiveTab('matches');
             };
 
             // Match handling
@@ -2056,7 +2062,20 @@
                                                     const matchCount = matches.filter(m => m.tournamentId === tournament.id).length;
                                                     return (
                                                         <tr key={tournament.id}>
-                                                            <td>{tournament.name}</td>
+                                                            <td>
+                                                                <span 
+                                                                    onClick={() => viewTournamentMatches(tournament.id)}
+                                                                    style={{
+                                                                        color: '#667eea',
+                                                                        cursor: 'pointer',
+                                                                        textDecoration: 'underline',
+                                                                        fontWeight: '600'
+                                                                    }}
+                                                                    title="Виж мачовете от този турнир"
+                                                                >
+                                                                    {tournament.name}
+                                                                </span>
+                                                            </td>
                                                             <td>{formatDateToDDMMYYYY(tournament.startDate)}</td>
                                                             <td>{formatDateToDDMMYYYY(tournament.endDate)}</td>
                                                             <td>{tournament.location || '-'}</td>
@@ -2087,6 +2106,22 @@
 
                         {activeTab === 'matches' && (
                             <div>
+                                {filterTournamentId && (
+                                    <div className="card" style={{background: '#e3f2fd', borderLeft: '4px solid #667eea'}}>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                            <div>
+                                                <strong>🎯 Филтрирано по турнир:</strong> {tournaments.find(t => t.id === filterTournamentId)?.name || 'Неизвестен'}
+                                            </div>
+                                            <button 
+                                                className="btn btn-secondary btn-sm" 
+                                                onClick={() => setFilterTournamentId('')}
+                                            >
+                                                ✕ Премахни филтъра
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 {isAdmin && (
                                     <div className="card">
                                         <h3>Добавяне на нов мач</h3>
@@ -2311,7 +2346,9 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {matches.map(match => {
+                                                {matches
+                                                    .filter(match => !filterTournamentId || match.tournamentId === filterTournamentId)
+                                                    .map(match => {
                                                     const tournament = tournaments.find(t => t.id === match.tournamentId);
                                                     const player1 = players.find(p => p.id === match.player1Id);
                                                     const player2 = players.find(p => p.id === match.player2Id);
