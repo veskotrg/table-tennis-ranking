@@ -632,6 +632,7 @@
             const [filterClub, setFilterClub] = useState('');
             const [filterAgeGroup, setFilterAgeGroup] = useState('');
             const [filterTournamentId, setFilterTournamentId] = useState('');
+            const [filterPlayerId, setFilterPlayerId] = useState('');
             
             const [alert, setAlert] = useState(null);
             const [editingPlayer, setEditingPlayer] = useState(null);
@@ -903,6 +904,13 @@
 
             const viewTournamentMatches = (tournamentId) => {
                 setFilterTournamentId(tournamentId);
+                setFilterPlayerId('');
+                setActiveTab('matches');
+            };
+
+            const viewPlayerMatches = (playerId) => {
+                setFilterPlayerId(playerId);
+                setFilterTournamentId('');
                 setActiveTab('matches');
             };
 
@@ -1656,8 +1664,34 @@
                                                 return (
                                                     <tr key={player.id}>
                                                         <td className={positionClass}>#{index + 1}</td>
-                                                        <td>{player.firstName}</td>
-                                                        <td>{player.lastName}</td>
+                                                        <td>
+                                                            <span 
+                                                                onClick={() => viewPlayerMatches(player.id)}
+                                                                style={{
+                                                                    color: '#667eea',
+                                                                    cursor: 'pointer',
+                                                                    textDecoration: 'underline',
+                                                                    fontWeight: '600'
+                                                                }}
+                                                                title="Виж мачовете на този играч"
+                                                            >
+                                                                {player.firstName}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <span 
+                                                                onClick={() => viewPlayerMatches(player.id)}
+                                                                style={{
+                                                                    color: '#667eea',
+                                                                    cursor: 'pointer',
+                                                                    textDecoration: 'underline',
+                                                                    fontWeight: '600'
+                                                                }}
+                                                                title="Виж мачовете на този играч"
+                                                            >
+                                                                {player.lastName}
+                                                            </span>
+                                                        </td>
                                                         <td>{player.ageGroup}</td>
                                                         <td>{club ? club.name : '-'}</td>
                                                         <td><strong>{player.currentPoints.toFixed(1)}</strong></td>
@@ -1841,8 +1875,34 @@
                                                     const club = clubs.find(c => c.id === player.clubId);
                                                     return (
                                                         <tr key={player.id}>
-                                                            <td>{player.firstName}</td>
-                                                            <td>{player.lastName}</td>
+                                                            <td>
+                                                                <span 
+                                                                    onClick={() => viewPlayerMatches(player.id)}
+                                                                    style={{
+                                                                        color: '#667eea',
+                                                                        cursor: 'pointer',
+                                                                        textDecoration: 'underline',
+                                                                        fontWeight: '600'
+                                                                    }}
+                                                                    title="Виж мачовете на този играч"
+                                                                >
+                                                                    {player.firstName}
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <span 
+                                                                    onClick={() => viewPlayerMatches(player.id)}
+                                                                    style={{
+                                                                        color: '#667eea',
+                                                                        cursor: 'pointer',
+                                                                        textDecoration: 'underline',
+                                                                        fontWeight: '600'
+                                                                    }}
+                                                                    title="Виж мачовете на този играч"
+                                                                >
+                                                                    {player.lastName}
+                                                                </span>
+                                                            </td>
                                                             <td>{player.gender}</td>
                                                             <td>{player.ageGroup}</td>
                                                             <td>{club ? club.name : '-'}</td>
@@ -2121,6 +2181,25 @@
                                         </div>
                                     </div>
                                 )}
+
+                                {filterPlayerId && (
+                                    <div className="card" style={{background: '#f3e5f5', borderLeft: '4px solid #764ba2'}}>
+                                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                            <div>
+                                                <strong>👤 Филтрирано по играч:</strong> {(() => {
+                                                    const player = players.find(p => p.id === filterPlayerId);
+                                                    return player ? `${player.firstName} ${player.lastName}` : 'Неизвестен';
+                                                })()}
+                                            </div>
+                                            <button 
+                                                className="btn btn-secondary btn-sm" 
+                                                onClick={() => setFilterPlayerId('')}
+                                            >
+                                                ✕ Премахни филтъра
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                                 
                                 {isAdmin && (
                                     <div className="card">
@@ -2347,7 +2426,11 @@
                                             </thead>
                                             <tbody>
                                                 {matches
-                                                    .filter(match => !filterTournamentId || match.tournamentId === filterTournamentId)
+                                                    .filter(match => {
+                                                        if (filterTournamentId) return match.tournamentId === filterTournamentId;
+                                                        if (filterPlayerId) return match.player1Id === filterPlayerId || match.player2Id === filterPlayerId;
+                                                        return true;
+                                                    })
                                                     .map(match => {
                                                     const tournament = tournaments.find(t => t.id === match.tournamentId);
                                                     const player1 = players.find(p => p.id === match.player1Id);
