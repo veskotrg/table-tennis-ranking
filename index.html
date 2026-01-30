@@ -1128,6 +1128,290 @@
                 showAlert('Данните са експортирани успешно!');
             };
 
+            const exportToExcel = () => {
+                // Create workbook
+                let excelContent = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                    <head>
+                        <meta charset="utf-8">
+                        <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>
+                `;
+                
+                // Ranking Sheet
+                excelContent += `
+                    <x:ExcelWorksheet><x:Name>Ранглиста</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
+                `;
+                
+                // Players Sheet
+                excelContent += `
+                    <x:ExcelWorksheet><x:Name>Състезатели</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
+                `;
+                
+                // Clubs Sheet
+                excelContent += `
+                    <x:ExcelWorksheet><x:Name>Клубове</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
+                `;
+                
+                // Tournaments Sheet
+                excelContent += `
+                    <x:ExcelWorksheet><x:Name>Турнири</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
+                `;
+                
+                // Matches Sheet
+                excelContent += `
+                    <x:ExcelWorksheet><x:Name>Мачове</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
+                `;
+                
+                excelContent += `
+                    </x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+                    </head>
+                    <body>
+                `;
+                
+                // Ranking Table
+                excelContent += `<table><tr><td colspan="7" style="font-size:16px;font-weight:bold;">Ранглиста за ${currentMonth}</td></tr>`;
+                excelContent += `<tr style="font-weight:bold;background:#667eea;color:white;">
+                    <td>Позиция</td><td>Име</td><td>Фамилия</td><td>Възрастова група</td><td>Клуб</td><td>Точки</td><td>Картотека №</td>
+                </tr>`;
+                rankedPlayers.forEach((player, index) => {
+                    const club = clubs.find(c => c.id === player.clubId);
+                    excelContent += `<tr>
+                        <td>${index + 1}</td>
+                        <td>${player.firstName}</td>
+                        <td>${player.lastName}</td>
+                        <td>${player.ageGroup}</td>
+                        <td>${club ? club.name : '-'}</td>
+                        <td>${player.currentPoints.toFixed(1)}</td>
+                        <td>${player.licenseNumber || '-'}</td>
+                    </tr>`;
+                });
+                excelContent += `</table><br><br>`;
+                
+                // Players Table
+                excelContent += `<table><tr><td colspan="8" style="font-size:16px;font-weight:bold;">Състезатели</td></tr>`;
+                excelContent += `<tr style="font-weight:bold;background:#667eea;color:white;">
+                    <td>Име</td><td>Фамилия</td><td>Дата на раждане</td><td>Пол</td><td>Възрастова група</td><td>Клуб</td><td>Точки</td><td>Картотека №</td>
+                </tr>`;
+                players.forEach(player => {
+                    const club = clubs.find(c => c.id === player.clubId);
+                    excelContent += `<tr>
+                        <td>${player.firstName}</td>
+                        <td>${player.lastName}</td>
+                        <td>${player.dateOfBirth}</td>
+                        <td>${player.gender}</td>
+                        <td>${player.ageGroup}</td>
+                        <td>${club ? club.name : '-'}</td>
+                        <td>${player.currentPoints.toFixed(1)}</td>
+                        <td>${player.licenseNumber || '-'}</td>
+                    </tr>`;
+                });
+                excelContent += `</table><br><br>`;
+                
+                // Clubs Table
+                excelContent += `<table><tr><td colspan="3" style="font-size:16px;font-weight:bold;">Клубове</td></tr>`;
+                excelContent += `<tr style="font-weight:bold;background:#667eea;color:white;">
+                    <td>Име</td><td>Град</td><td>Номер на клуба</td>
+                </tr>`;
+                clubs.forEach(club => {
+                    excelContent += `<tr>
+                        <td>${club.name}</td>
+                        <td>${club.city}</td>
+                        <td>${club.clubNumber || '-'}</td>
+                    </tr>`;
+                });
+                excelContent += `</table><br><br>`;
+                
+                // Tournaments Table
+                excelContent += `<table><tr><td colspan="6" style="font-size:16px;font-weight:bold;">Турнири</td></tr>`;
+                excelContent += `<tr style="font-weight:bold;background:#667eea;color:white;">
+                    <td>Име</td><td>Начална дата</td><td>Крайна дата</td><td>Локация</td><td>Клуб домакин</td><td>Коефициент</td>
+                </tr>`;
+                tournaments.forEach(tournament => {
+                    const hostClub = clubs.find(c => c.id === tournament.hostClubId);
+                    excelContent += `<tr>
+                        <td>${tournament.name}</td>
+                        <td>${formatDateToDDMMYYYY(tournament.startDate)}</td>
+                        <td>${formatDateToDDMMYYYY(tournament.endDate)}</td>
+                        <td>${tournament.location || '-'}</td>
+                        <td>${hostClub ? hostClub.name : '-'}</td>
+                        <td>${tournament.coefficient}x</td>
+                    </tr>`;
+                });
+                excelContent += `</table><br><br>`;
+                
+                // Matches Table
+                excelContent += `<table><tr><td colspan="7" style="font-size:16px;font-weight:bold;">Мачове</td></tr>`;
+                excelContent += `<tr style="font-weight:bold;background:#667eea;color:white;">
+                    <td>Дата</td><td>Турнир</td><td>Играч 1</td><td>Играч 2</td><td>Победител</td><td>Резултат</td><td>Формат</td>
+                </tr>`;
+                matches.forEach(match => {
+                    const tournament = tournaments.find(t => t.id === match.tournamentId);
+                    const player1 = players.find(p => p.id === match.player1Id);
+                    const player2 = players.find(p => p.id === match.player2Id);
+                    const winner = players.find(p => p.id === match.winnerId);
+                    excelContent += `<tr>
+                        <td>${new Date(match.date).toLocaleDateString('bg-BG')}</td>
+                        <td>${tournament?.name || '-'}</td>
+                        <td>${player1 ? player1.firstName + ' ' + player1.lastName : '-'}</td>
+                        <td>${player2 ? player2.firstName + ' ' + player2.lastName : '-'}</td>
+                        <td>${winner ? winner.firstName + ' ' + winner.lastName : '-'}</td>
+                        <td>${match.score || '-'}</td>
+                        <td>${match.format === 'best-of-5' ? 'Best of 5' : 'Best of 7'}</td>
+                    </tr>`;
+                });
+                excelContent += `</table>`;
+                
+                excelContent += `</body></html>`;
+                
+                const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `tt-ranking-${currentMonth}.xls`;
+                a.click();
+                showAlert('Excel файлът е експортиран успешно!');
+            };
+
+            const exportToPDF = () => {
+                let pdfContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="utf-8">
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            h1 { color: #667eea; text-align: center; }
+                            h2 { color: #764ba2; margin-top: 30px; border-bottom: 2px solid #667eea; padding-bottom: 5px; }
+                            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; page-break-inside: auto; }
+                            tr { page-break-inside: avoid; page-break-after: auto; }
+                            th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px; text-align: left; font-weight: bold; }
+                            td { padding: 8px; border-bottom: 1px solid #e0e0e0; }
+                            tr:nth-child(even) { background: #f8f9fa; }
+                            .ranking-1 { color: #FFD700; font-weight: bold; }
+                            .ranking-2 { color: #C0C0C0; font-weight: bold; }
+                            .ranking-3 { color: #CD7F32; font-weight: bold; }
+                            .page-break { page-break-before: always; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>🏓 Ранглиста Тенис на Маса</h1>
+                        <p style="text-align:center;">Експорт от ${new Date().toLocaleDateString('bg-BG')}</p>
+                `;
+                
+                // Ranking
+                pdfContent += `<h2>Ранглиста за ${currentMonth}</h2>`;
+                pdfContent += `<table><thead><tr>
+                    <th>Позиция</th><th>Име</th><th>Фамилия</th><th>Възрастова група</th><th>Клуб</th><th>Точки</th><th>Картотека №</th>
+                </tr></thead><tbody>`;
+                rankedPlayers.forEach((player, index) => {
+                    const club = clubs.find(c => c.id === player.clubId);
+                    let posClass = '';
+                    if (index === 0) posClass = 'ranking-1';
+                    else if (index === 1) posClass = 'ranking-2';
+                    else if (index === 2) posClass = 'ranking-3';
+                    pdfContent += `<tr>
+                        <td class="${posClass}">#${index + 1}</td>
+                        <td>${player.firstName}</td>
+                        <td>${player.lastName}</td>
+                        <td>${player.ageGroup}</td>
+                        <td>${club ? club.name : '-'}</td>
+                        <td><strong>${player.currentPoints.toFixed(1)}</strong></td>
+                        <td>${player.licenseNumber || '-'}</td>
+                    </tr>`;
+                });
+                pdfContent += `</tbody></table>`;
+                
+                // Players
+                pdfContent += `<div class="page-break"></div>`;
+                pdfContent += `<h2>Състезатели (${players.length})</h2>`;
+                pdfContent += `<table><thead><tr>
+                    <th>Име</th><th>Фамилия</th><th>Пол</th><th>Възрастова група</th><th>Клуб</th><th>Точки</th><th>Картотека №</th>
+                </tr></thead><tbody>`;
+                players.forEach(player => {
+                    const club = clubs.find(c => c.id === player.clubId);
+                    pdfContent += `<tr>
+                        <td>${player.firstName}</td>
+                        <td>${player.lastName}</td>
+                        <td>${player.gender}</td>
+                        <td>${player.ageGroup}</td>
+                        <td>${club ? club.name : '-'}</td>
+                        <td>${player.currentPoints.toFixed(1)}</td>
+                        <td>${player.licenseNumber || '-'}</td>
+                    </tr>`;
+                });
+                pdfContent += `</tbody></table>`;
+                
+                // Clubs
+                pdfContent += `<h2>Клубове (${clubs.length})</h2>`;
+                pdfContent += `<table><thead><tr>
+                    <th>Име на клуба</th><th>Град</th><th>Номер на клуба</th><th>Брой състезатели</th>
+                </tr></thead><tbody>`;
+                clubs.forEach(club => {
+                    const playerCount = players.filter(p => p.clubId === club.id).length;
+                    pdfContent += `<tr>
+                        <td>${club.name}</td>
+                        <td>${club.city}</td>
+                        <td>${club.clubNumber || '-'}</td>
+                        <td>${playerCount}</td>
+                    </tr>`;
+                });
+                pdfContent += `</tbody></table>`;
+                
+                // Tournaments
+                pdfContent += `<div class="page-break"></div>`;
+                pdfContent += `<h2>Турнири (${tournaments.length})</h2>`;
+                pdfContent += `<table><thead><tr>
+                    <th>Име</th><th>Начална дата</th><th>Крайна дата</th><th>Локация</th><th>Клуб домакин</th><th>Коефициент</th><th>Мачове</th>
+                </tr></thead><tbody>`;
+                tournaments.forEach(tournament => {
+                    const hostClub = clubs.find(c => c.id === tournament.hostClubId);
+                    const matchCount = matches.filter(m => m.tournamentId === tournament.id).length;
+                    pdfContent += `<tr>
+                        <td>${tournament.name}</td>
+                        <td>${formatDateToDDMMYYYY(tournament.startDate)}</td>
+                        <td>${formatDateToDDMMYYYY(tournament.endDate)}</td>
+                        <td>${tournament.location || '-'}</td>
+                        <td>${hostClub ? hostClub.name : '-'}</td>
+                        <td>${tournament.coefficient}x</td>
+                        <td>${matchCount}</td>
+                    </tr>`;
+                });
+                pdfContent += `</tbody></table>`;
+                
+                // Matches
+                pdfContent += `<div class="page-break"></div>`;
+                pdfContent += `<h2>Мачове (${matches.length})</h2>`;
+                pdfContent += `<table><thead><tr>
+                    <th>Дата</th><th>Турнир</th><th>Играч 1</th><th>Играч 2</th><th>Победител</th><th>Резултат</th>
+                </tr></thead><tbody>`;
+                matches.forEach(match => {
+                    const tournament = tournaments.find(t => t.id === match.tournamentId);
+                    const player1 = players.find(p => p.id === match.player1Id);
+                    const player2 = players.find(p => p.id === match.player2Id);
+                    const winner = players.find(p => p.id === match.winnerId);
+                    pdfContent += `<tr>
+                        <td>${new Date(match.date).toLocaleDateString('bg-BG')}</td>
+                        <td>${tournament?.name || '-'}</td>
+                        <td>${player1 ? player1.firstName + ' ' + player1.lastName : '-'}</td>
+                        <td>${player2 ? player2.firstName + ' ' + player2.lastName : '-'}</td>
+                        <td><strong>${winner ? winner.firstName + ' ' + winner.lastName : '-'}</strong></td>
+                        <td>${match.score || '-'}</td>
+                    </tr>`;
+                });
+                pdfContent += `</tbody></table>`;
+                
+                pdfContent += `</body></html>`;
+                
+                // Open in new window for printing to PDF
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(pdfContent);
+                printWindow.document.close();
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+                showAlert('PDF прозорецът е отворен. Изберете "Запази като PDF" в диалога за печат.');
+            };
+
             const importFromJSON = (event) => {
                 const file = event.target.files[0];
                 if (file) {
@@ -1382,13 +1666,23 @@
                                 {isAdmin && (
                                     <div className="export-section">
                                         <h3>Експорт / Импорт</h3>
-                                        <button className="btn btn-primary" onClick={exportToJSON}>
-                                            Експорт в JSON
-                                        </button>
-                                        <label className="btn btn-secondary" style={{display: 'inline-block', cursor: 'pointer'}}>
-                                            Импорт от JSON
-                                            <input type="file" accept=".json" onChange={importFromJSON} style={{display: 'none'}} />
-                                        </label>
+                                        <div style={{marginBottom: '15px'}}>
+                                            <button className="btn btn-primary" onClick={exportToExcel}>
+                                                📊 Експорт в Excel
+                                            </button>
+                                            <button className="btn btn-primary" onClick={exportToPDF}>
+                                                📄 Експорт в PDF
+                                            </button>
+                                            <button className="btn btn-secondary" onClick={exportToJSON}>
+                                                💾 Експорт в JSON
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <label className="btn btn-secondary" style={{display: 'inline-block', cursor: 'pointer'}}>
+                                                📥 Импорт от JSON
+                                                <input type="file" accept=".json" onChange={importFromJSON} style={{display: 'none'}} />
+                                            </label>
+                                        </div>
                                         <button className="btn btn-success" onClick={() => {
                                             const autoBackup = localStorage.getItem('tt_auto_backup');
                                             const backupTimestamp = localStorage.getItem('tt_backup_timestamp');
@@ -1409,7 +1703,7 @@
                                                 showAlert('Няма намерен автоматичен backup!', 'error');
                                             }
                                         }}>
-                                            Възстанови от Backup
+                                            🔄 Възстанови от Backup
                                         </button>
                                     </div>
                                 )}
